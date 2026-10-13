@@ -298,7 +298,7 @@ python Evaluation/evaluate.py \
 
 ## Docker Inference Package
 
-The `docker_v2/` folder is for challenge-style inference. It is not the main training pipeline.
+
 
 Build the image:
 
@@ -333,69 +333,6 @@ Expected success message:
 SUCCESS: wrote exactly N predictions.
 ```
 
-## Uploading to GitHub
-
-Large files must use Git LFS. Do not push `.pth` or `.nii.gz` files as normal Git objects.
-
-```bash
-git init
-git lfs install
-git lfs track "*.pth"
-git lfs track "*.pt"
-git lfs track "*.nii.gz"
-
-git add .gitattributes
-git add .
-git commit -m "Add MRIxFields harmonization code"
-
-git branch -M main
-git remote add origin https://github.com/AramSalehi/mrixfields_harmonization.git
-git push -u origin main
-```
-
-If `origin` already exists:
-
-```bash
-git remote set-url origin https://github.com/AramSalehi/mrixfields_harmonization.git
-git push -u origin main
-```
-
-## Recommended `.gitignore`
-
-```gitignore
-__pycache__/
-*.pyc
-*.pyo
-*.log
-.env
-.DS_Store
-
-# Data and outputs
-data/
-datasets/
-preprocessed/
-outputs/
-inference_outputs/
-checkpoints/
-runs/
-wandb/
-test_input/
-test_output/
-
-# Large archives
-*.zip
-*.rar
-*.tar
-*.tar.gz
-```
-
-## Notes
-
-- Task 3 should use one unified conditional model for all field-to-field translations.
-- Task 3 evaluation does not require SynthSeg segmentation.
-- Task 1 and Task 2 full evaluation require SynthSeg for Dice and volume metrics.
-- Keep private MRI data out of the public repository.
-- Use GitHub Releases or Git LFS for model checkpoints.
 
 ## Citation
 
