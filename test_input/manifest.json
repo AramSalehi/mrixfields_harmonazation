@@ -1,0 +1,19 @@
+{
+  "challenge": "MRIxFields2026",
+  "phase": "test",
+  "task": "task3",
+  "input_root": "/input",
+  "output_root": "/output",
+  "samples": [
+    {
+      "task": "task3",
+      "case_id": "0001",
+      "modality": "T1W",
+      "source_field": "0.1T",
+      "target_field": "7T",
+      "pair": "0.1T_to_7T",
+      "input": "T1W/0.1T_to_7T/src/P_T1W_0.1T_0001.nii.gz",
+      "output": "T1W/0.1T_to_7T/pred/P_T1W_7T_0001.nii.gz"
+    }
+  ]
+}

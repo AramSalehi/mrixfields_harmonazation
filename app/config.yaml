@@ -1,0 +1,145 @@
+task: 3
+task_name: task3_condD_STABLE_2epoch_bs2_20260904
+method: cut_unetr_task3
+
+model:
+  name: conditioned_swin_unetr
+  generator: conditioned_swin_unetr
+  type: conditioned_swin_unetr
+  input_nc: 1
+  output_nc: 1
+  ndf: 64
+  base_image_size: [384, 448]
+  embed_dim: 48
+  depths: [2, 2, 2, 2]
+  num_heads: [3, 6, 12, 24]
+  window_size: 4
+  stem_channels: 32
+  mlp_ratio: 4.0
+  condition_dim: 192
+  dropout: 0.0
+  attention_dropout: 0.0
+  residual_prediction: true
+
+  # Stability fix for the previous black-image collapse.  The legacy code used
+  # hard clamp(reference + residual, -1, 1), which creates zero gradients after
+  # saturation.  This bounded atanh/tanh residual remains differentiable and
+  # starts approximately as identity because the residual head is zero-init.
+  residual_output_mode: atanh_tanh
+  residual_scale: 0.10
+
+  gradient_checkpointing: true
+  nce_layers: [0, 1, 2, 3, 4]
+  nce_T: 0.07
+  num_patches: 256
+  lambda_GAN: 1.0
+  lambda_NCE: 1.0
+  nce_idt: true
+  lambda_identity: 1.0
+  gan_mode: lsgan
+  netF_nc: 256
+  conditioning_inputs:
+    - source_field
+    - target_field
+    - field_delta
+    - modality
+  # The implemented conditional PatchGAN receives target field + modality.
+  discriminator_conditioning_inputs:
+    - target_field
+    - modality
+
+data:
+  modalities: [T1W, T2W, T2FLAIR]
+  field_strengths: [0.1T, 1.5T, 3T, 5T, 7T]
+  crop_size: [384, 448]
+  slice_axis: 2
+
+pretrain:
+  split: retro_train
+  batch_size: 2
+  num_workers: 8
+  max_iters_per_epoch: 0
+
+  # More conservative G/D balance for the Stage-1 collapse test.
+  lr: 1.0e-04
+  discriminator_lr: 5.0e-05
+  gradient_clip_norm: 1.0
+  beta1: 0.5
+  beta2: 0.999
+  lr_policy: linear
+
+  # EXACT diagnostic request: two complete Stage-1 epochs.
+  n_epochs: 2
+  n_epochs_decay: 0
+  save_every: 1
+  print_every: 200
+
+  # Black-output diagnostics / guard.
+  collapse_check_every: 100
+  collapse_minus_one_threshold: 0.95
+  collapse_patience: 3
+  collapse_abort: true
+  iteration_checkpoint_every: 2000
+
+finetune:
+  split: pro_train
+  batch_size: 2
+  num_workers: 8
+  lr: 2.0e-05
+  gradient_clip_norm: 1.0
+  beta1: 0.5
+  beta2: 0.999
+
+  # If the two-stage launcher is used, Stage 2 is also limited to two epochs.
+  epochs: 2
+  save_every: 1
+
+  loss_l1: 1.0
+  loss_lpips: 0.1
+  loss_ssim: 0.0
+  loss_edge: 0.0
+
+  conditional_discriminator: true
+  loss_gan: 0.01
+  discriminator_lr: 1.0e-05
+
+  # Stage 2 starts from this run's final Stage-1 checkpoint_epoch2.pth.
+  pretrain_epoch: 2
+
+  augmentation:
+    enabled: true
+    hflip_prob: 0.5
+    vflip_prob: 0.0
+    rotate_prob: 0.4
+    rotate_degrees: 10.0
+    elastic_prob: 0.25
+    elastic_alpha: 2.5
+    elastic_grid_size: 8
+    intensity_prob: 0.5
+    gamma_min: 0.85
+    gamma_max: 1.15
+    scale_min: 0.85
+    scale_max: 1.15
+    shift: 0.04
+    noise_std: 0.01
+    source_only_intensity: true
+
+  val_lr_factor: 0.5
+  val_lr_patience: 5
+  val_min_lr: 1.0e-07
+  val_min_delta: 0.0001
+  early_stopping_patience: 0
+
+validation:
+  fraction: 0.1
+  seed: 2026
+  batch_size: 2
+  max_batches: 25
+  stage1_start_after_epoch: 0
+  method: >-
+    Stable diagnostic configuration. Stage 1 runs from random initialization
+    for two complete retrospective epochs with batch size 2. Generator output
+    uses differentiable bounded residual prediction, Stage-1 discriminator LR
+    is reduced relative to the generator, gradient clipping is enabled, and
+    output saturation is monitored every 100 optimizer steps. The optional
+    two-stage launcher then fine-tunes for two paired epochs, also at batch size 2.
