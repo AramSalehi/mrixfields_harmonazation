@@ -20,7 +20,7 @@ Code for cross-field brain MRI harmonization and translation for the MRIxFields2
 +-- .env.example              # Example path configuration
 ```
 
-If your GitHub repository contains only `docker_v2/`, then it is an inference/submission package only. Training and full local evaluation require the full project folders: `Baseline/`, `Evaluation/`, `Submission/`, and `environment.yml`.
+
 
 ## Requirements
 
