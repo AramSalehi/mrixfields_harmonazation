@@ -2,7 +2,7 @@
 
 Code for cross-field brain MRI harmonization and translation for the MRIxFields2026 challenge. The project contains training, inference, evaluation, and Docker submission utilities for translating MRI volumes across magnetic field strengths such as 0.1T, 1.5T, 3T, 5T, and 7T.
 
-This repository is intended for research use. Do not commit private MRI data, validation/test data, or large model checkpoints directly to GitHub without Git LFS or a release asset.
+
 
 ## Project Structure
 
